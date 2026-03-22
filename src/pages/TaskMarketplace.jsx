@@ -15,11 +15,11 @@ const TaskMarketplace = () => {
   const { currentUser } = useAuth();
   const { toast } = useToast();
   const [tasks, setTasks] = useState([]);
+  const [mySubmissions, setMySubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [tokenRange, setTokenRange] = useState([0, 1000]);
-  const [minSkillScore, setMinSkillScore] = useState(0);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -39,6 +39,12 @@ const TaskMarketplace = () => {
         $autoCancel: false
       });
       setTasks(records);
+
+      const submissions = await pb.collection('submissions').getFullList({
+        filter: `freelancer_id = "${currentUser.id}"`,
+        $autoCancel: false
+      });
+      setMySubmissions(submissions);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast({
@@ -60,33 +66,29 @@ const TaskMarketplace = () => {
   };
 
   const filteredTasks = tasks.filter(task => {
-    // Search filter
     if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !task.description.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
-
-    // Category filter
     if (selectedCategories.length > 0 && !selectedCategories.includes(task.category)) {
       return false;
     }
-
-    // Token range filter
     if (task.token_reward < tokenRange[0] || task.token_reward > tokenRange[1]) {
       return false;
     }
-
-    // Skill score filter
     if (task.minimum_skill_score && task.minimum_skill_score > (currentUser?.skillScore || 0)) {
       return false;
     }
-
     return true;
   });
 
   const handleApply = (task) => {
     setSelectedTask(task);
     setIsModalOpen(true);
+  };
+
+  const hasSubmitted = (taskId) => {
+    return mySubmissions.some(s => s.task_id === taskId);
   };
 
   const getCategoryColor = (category) => {
@@ -117,12 +119,10 @@ const TaskMarketplace = () => {
           </div>
 
           <div className="grid lg:grid-cols-4 gap-8">
-            {/* Filters Sidebar */}
             <div className="lg:col-span-1">
               <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 sticky top-24">
                 <h2 className="text-xl font-bold text-white mb-6">Filters</h2>
 
-                {/* Search */}
                 <div className="mb-6">
                   <Label className="text-gray-200 mb-2 block">Search</Label>
                   <div className="relative">
@@ -137,7 +137,6 @@ const TaskMarketplace = () => {
                   </div>
                 </div>
 
-                {/* Categories */}
                 <div className="mb-6">
                   <Label className="text-gray-200 mb-3 block">Categories</Label>
                   <div className="space-y-2">
@@ -156,7 +155,6 @@ const TaskMarketplace = () => {
                   </div>
                 </div>
 
-                {/* Token Range */}
                 <div className="mb-6">
                   <Label className="text-gray-200 mb-3 block">
                     Token Reward: {tokenRange[0]} - {tokenRange[1]}
@@ -184,7 +182,6 @@ const TaskMarketplace = () => {
               </div>
             </div>
 
-            {/* Tasks Grid */}
             <div className="lg:col-span-3">
               {loading ? (
                 <div className="text-center py-12">
@@ -244,12 +241,21 @@ const TaskMarketplace = () => {
                         )}
                       </div>
 
-                      <Button
-                        onClick={() => handleApply(task)}
-                        className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white"
-                      >
-                        Apply Now
-                      </Button>
+                      {hasSubmitted(task.id) ? (
+                        <Button
+                          disabled
+                          className="w-full bg-gray-600 text-gray-300 cursor-not-allowed"
+                        >
+                          ✓ Already Submitted
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleApply(task)}
+                          className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white"
+                        >
+                          Apply Now
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -265,7 +271,7 @@ const TaskMarketplace = () => {
           onClose={() => {
             setIsModalOpen(false);
             setSelectedTask(null);
-            fetchTasks(); // Refresh to update submission counts
+            fetchTasks();
           }}
           task={selectedTask}
         />

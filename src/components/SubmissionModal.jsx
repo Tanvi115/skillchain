@@ -33,15 +33,6 @@ const SubmissionModal = ({ isOpen, onClose, task }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!submissionUrl.trim()) {
-      toast({
-        title: 'URL required',
-        description: 'Please provide a submission URL',
-        variant: 'destructive'
-      });
-      return;
-    }
 
     setLoading(true);
 
@@ -100,7 +91,7 @@ const SubmissionModal = ({ isOpen, onClose, task }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="submission_url" className="text-gray-900">
-              Submission URL <span className="text-red-500">*</span>
+              Submission URL (option) <span className="text-red-500"></span>
             </Label>
             <div className="relative">
               <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -111,7 +102,7 @@ const SubmissionModal = ({ isOpen, onClose, task }) => {
                 onChange={(e) => setSubmissionUrl(e.target.value)}
                 placeholder="https://github.com/yourwork or https://drive.google.com/..."
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                required
+
               />
             </div>
             <p className="text-xs text-gray-500">Link to your GitHub repo, Google Drive, or live demo</p>

@@ -11,8 +11,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { Coins, Award, TrendingUp, XCircle, CheckCircle, Calendar } from 'lucide-react';
 
 const FreelancerProfile = () => {
-  const { userId } = useParams();
+  const { userId: paramUserId } = useParams();
   const { currentUser } = useAuth();
+  const userId = paramUserId || currentUser?.id;
   const { toast } = useToast();
   const [user, setUser] = useState(null);
   const [badges, setBadges] = useState([]);

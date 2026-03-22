@@ -11,8 +11,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { Coins, Briefcase, CheckCircle, Clock, Calendar } from 'lucide-react';
 
 const CompanyProfile = () => {
-  const { userId } = useParams();
-  const { currentUser } = useAuth();
+const { userId: paramUserId } = useParams();
+const { currentUser } = useAuth();
+const userId = paramUserId || currentUser?.id;  
   const { toast } = useToast();
   const [user, setUser] = useState(null);
   const [tasks, setTasks] = useState([]);
